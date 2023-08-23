@@ -20,12 +20,15 @@ function handleAudioFile(event) {
   if (file) {
     const objectURL = URL.createObjectURL(file);
     audio1.src = objectURL;
+
     if (audioSource) {
       audioSource.disconnect();
     }
+
     audioSource = audioCtx.createMediaElementSource(audio1);
     audioSource.connect(analyser);
     analyser.connect(audioCtx.destination);
+
     audio1.play().catch((error) => {
       console.error("Audio playback error:", error);
     });
@@ -45,16 +48,17 @@ function animate() {
 
   analyser.getByteFrequencyData(dataArray);
 
-  for (let i = 0; i < bufferLength; i++) {
-    const barHeight = dataArray[i];
-    const hue = (i / bufferLength) * 360;
-    ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
-    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-    x += barWidth;
-  }
+  const numBars = bufferLength;
+  const barSpacing = canvas.width / numBars;
+  const maxBarHeight = canvas.height * 0.8; // Adjust this for desired height
 
-  // Reset x position for the next frame
-  x = 0;
+  for (let i = 0; i < numBars; i++) {
+    const barHeight = (dataArray[i] / 255) * maxBarHeight;
+    const hue = (i / numBars) * 360;
+    ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+    const barX = i * barSpacing;
+    ctx.fillRect(barX, canvas.height - barHeight, barSpacing, barHeight);
+  }
 
   requestAnimationFrame(animate);
 }
